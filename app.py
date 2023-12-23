@@ -6,7 +6,6 @@ from datetime import datetime
 
 import requests
 
-hosts_datas = []
 hosts_map = {}
 
 hosts_start_tag = "###### start tim github hosts"
