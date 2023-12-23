@@ -1,0 +1,7 @@
+github.com
+github.global.ssl.fastly.net
+raw.githubusercontent.com
+gist.github.com
+api.github.com
+collector.github.com
+avatars.githubusercontent.com
