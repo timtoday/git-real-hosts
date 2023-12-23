@@ -33,7 +33,11 @@ def getip(website: str):
         ips = re.findall(r"<strong>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}?)</strong>", request.text)
         min_ttl = 500
         fast_ip = ""
+        c = 0
         for ip_item in ips:
+            if c > 5:
+                break
+            c = c + 1
             ttl = check_ip_delay(ip_item)
             print("IP:%s TTL:%s" % (ip_item, ttl))
             if ttl is not None and ttl < min_ttl:
