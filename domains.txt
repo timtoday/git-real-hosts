@@ -5,4 +5,3 @@ gist.github.com
 api.github.com
 collector.github.com
 avatars.githubusercontent.com
-google.com
