@@ -1,8 +1,10 @@
 import os
 import re
+import subprocess
 import sys
 import time
 from datetime import datetime
+from tcping import Ping
 
 import requests
 
@@ -15,12 +17,35 @@ hosts_end_tag = "###### end tim github hosts ######"
 def check_ip_delay(ip):
     # -c 选项表示发送的请求次数，1 表示发送一次
     # -W 选项表示等待每次回复的超时时间，这里设置为 1000 毫秒
-    command = f"ping -c 1 -W 1000 {ip}"
+    my_timeout = 5
     start_time = time.time()
-    os.system(command)
+    p = subprocess.Popen(['ping', ip])
+    try:
+        p.wait(my_timeout)
+    except subprocess.TimeoutExpired:
+        p.kill()
+        return 666666
     end_time = time.time()
     delay = end_time - start_time
     return delay
+
+
+def pingip(ipAddress, request_nums):
+    """
+    ping ip
+    :param ipAddress:
+    :param request_nums: 请求次数
+    :return: 丢包率loss和统计结果res
+    """
+    ping = Ping(ipAddress, timeout=1)
+    ping.ping(request_nums)
+    res = ping.result.table
+    ret = ping.result.raw
+    retlist = list(ret.split('\n'))
+    ttl = retlist[3].split(',')[2].split('average =')[1].replace("ms", "")
+    if "time out" in ttl:
+        ttl = 0
+    return float(ttl), res
 
 
 def getip(website: str):
@@ -34,16 +59,22 @@ def getip(website: str):
         min_ttl = 500
         fast_ip = ""
         c = 0
+        print("start check :" + website)
+        print("found (" + str(len(ips)) + ") ips")
         for ip_item in ips:
             if c > 5:
                 break
             c = c + 1
-            ttl = check_ip_delay(ip_item)
-            print("IP:%s TTL:%s" % (ip_item, ttl))
-            if ttl is not None and ttl < min_ttl:
+            ttl, res = pingip(ip_item, 3)
+            if min_ttl > ttl > 0:
                 fast_ip = ip_item
+                min_ttl = ttl
+
         if fast_ip is not "":
+            print("fast ip is:" + fast_ip)
             hosts_map[website] = fast_ip
+        else:
+            print("ip can't connect")
 
 
 def auto_hosts():
@@ -77,7 +108,7 @@ def reload_dns():
 
     # LINUX
     if sys.platform.startswith('linux'):
-        os.system('sudo systemd-resolve --flush-caches')
+        os.system('sudo resolvectl flush-caches')
 
     # MAC
     if sys.platform.startswith('darwin'):
