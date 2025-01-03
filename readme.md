@@ -4,7 +4,7 @@
 自动检测最快的IP ，并写入本地hosts文件，提高访问速度
 
 ## 更新日志
-update at 2020-01-03
+update at 2025-01-03
 ```
 1、ipaddress.com 页面有更新，修复支持
 2、增加windows Admin权限检查支持
