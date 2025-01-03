@@ -1,5 +1,6 @@
 import os
 import re
+import ssl
 import sys
 from datetime import datetime
 import asyncio
@@ -10,14 +11,11 @@ import ctypes
 import logging
 import tempfile
 
-# 配置日志记录
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# 定义常量
 HOSTS_START_TAG = "###### start tim github hosts"
 HOSTS_END_TAG = "###### end tim github hosts ######"
 
-# 全局变量
 hosts_map = {}
 
 
@@ -63,12 +61,12 @@ async def ping_ip(ip_address):
 
 
 async def get_ip(website):
-    """
-    Asynchronously fetch IP address
-    :param website: Website to fetch IP for
-    """
     try:
-        async with aiohttp.ClientSession() as session:
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
             async with session.get(f'https://sites.ipaddress.com/{website}', timeout=10) as response:
                 if response.status == 200:
                     html = await response.text()
@@ -105,7 +103,7 @@ def str_mid(text, start_tag, end_tag):
         end_pos = result.find(end_tag)
         if end_pos != -1:
             result = result[:end_pos + len(end_tag)]
-    return result
+    return None
 
 
 def auto_hosts():
@@ -121,7 +119,8 @@ def auto_hosts():
             old_hosts = raw_data.decode(result['encoding'])
 
         old_content = str_mid(old_hosts, HOSTS_START_TAG, HOSTS_END_TAG)
-        old_hosts = old_hosts.replace(old_content, "").strip()
+        if old_content is not None:
+            old_hosts = old_hosts.replace(old_content, "").strip()
 
         if not old_hosts.endswith("\n"):
             old_hosts += "\n"
