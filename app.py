@@ -96,14 +96,14 @@ async def get_ip(website):
 
 
 def str_mid(text, start_tag, end_tag):
-    result = text
+    result = None
     start_pos = text.find(start_tag)
     if start_pos != -1:
         result = text[start_pos:]
         end_pos = result.find(end_tag)
         if end_pos != -1:
             result = result[:end_pos + len(end_tag)]
-    return None
+    return result
 
 
 def auto_hosts():
